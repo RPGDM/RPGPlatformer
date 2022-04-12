@@ -1580,7 +1580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9ca71a8becf52a41b42b5e8e30bc362, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 10
+  maxHealth: 100
   _animator: {fileID: 0}
   _rigidBody: {fileID: 1590823846}
 --- !u!1 &1692663410
@@ -2179,8 +2179,8 @@ CapsuleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.8243473, y: 0.757343}
-  m_Size: {x: 1.2000002, y: 0.96589017}
+  m_Offset: {x: 0.39, y: 0.757343}
+  m_Size: {x: 0.2, y: 0.3}
   m_Direction: 1
 --- !u!1 &1983388776
 GameObject:

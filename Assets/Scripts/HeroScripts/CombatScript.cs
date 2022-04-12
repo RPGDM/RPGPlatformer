@@ -16,7 +16,6 @@ public class CombatScript : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && !attacks)
         {
             attacks = true;
-            Debug.Log("attack");
             _animationController.SetInteger("attackIndex", 0);
             _animationController.SetTrigger("attack");
             _weaponCollider.enabled = !_weaponCollider.enabled;
@@ -45,31 +44,17 @@ public class CombatScript : MonoBehaviour
         attacks = false;
         _weaponCollider.enabled = !_weaponCollider.enabled;
     }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Debug.Log(attacks.ToString());
+        if (collision.GetComponent<Enemy>() && attacks)
+        {
+            collision.GetComponent<Enemy>().TakeDamage(dealingDamage());
+        }
+    }
     private void Start()
     {
         _player = GetComponentInParent<Player>();
         _weaponCollider = GetComponentInParent<CapsuleCollider2D>();
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        Debug.Log(attacks.ToString());
-        if (collision.GetComponent<Enemy>())
-        {
-            Debug.Log("aaaa");
-            collision.GetComponent<Enemy>().TakeDamage(dealingDamage());
-        }
-    }
-    private void OnCollisionStay2D(Collision2D collision)
-    {
-        //Debug.Log(attacks.ToString());
-        if (collision.otherRigidbody.GetComponent<Enemy>())
-        {
-            Debug.Log("aaaa");
-            collision.otherRigidbody.GetComponent<Enemy>().TakeDamage(dealingDamage());
-        }
-        else
-        {
-            return;
-        }
     }
 }
