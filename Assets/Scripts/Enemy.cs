@@ -12,6 +12,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] private EnemyMovement movementController;
     [SerializeField] private float agreRange = 3.3f;
     [SerializeField] private float activeAgreRange = 5f;
+    private Behavior startEnemyBehavior;
     private Vector2 direction;
     private int currentHealth;
     private bool damageable = true;
@@ -72,12 +73,15 @@ public class Enemy : MonoBehaviour
                 movementController.AgressivePursuit(activeAgreRange);
                 if (!movementController.PlayerSearch(activeAgreRange))
                 {
-                    enemyBehavior = Behavior.patrol;
+                    enemyBehavior = startEnemyBehavior;
                 }
                 break;
             case Behavior.waitingToPlayer:
-            
-            break;
+                if (movementController.PlayerSearch(agreRange))
+                {
+                    enemyBehavior = Behavior.agressive;
+                }
+                break;
         }
     }
     private void OnDrawGizmosSelected()
@@ -92,12 +96,12 @@ public class Enemy : MonoBehaviour
             {
                 Gizmos.DrawWireSphere(agreCircle.position, activeAgreRange);
             }
-
         }
     }
     private void Start()
     {
         currentHealth = maxHealth;
+        startEnemyBehavior = enemyBehavior;
     }
     private void Update()
     {

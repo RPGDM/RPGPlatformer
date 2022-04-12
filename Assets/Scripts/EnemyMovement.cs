@@ -6,24 +6,39 @@ public class EnemyMovement : MonoBehaviour
 {
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private LayerMask playerMask;
-    [SerializeField] private Transform groundCheker;
+    [SerializeField] private Transform groundChecker;
+    [SerializeField] private Transform wallChecker;
+    [SerializeField] private Transform jumpUpChecker;
+    private Collider2D enemyCollider;
     private Rigidbody2D enemyRigidbody;
     private Vector2 movingVector;
     private MovementDirection direction = MovementDirection.Left;
-    private float WalkSpeed = -1;
+    private float walkSpeed = -1;
+    private float jumpForce = 5;
     private bool patrolling;
+    private bool isJumping = false;
+    private bool canJumpUp;
     public void Patrol()
     {
-        enemyRigidbody.velocity = new Vector2(WalkSpeed, enemyRigidbody.velocity.y);
-        if (!Physics2D.OverlapCircle(groundCheker.position, 0.1f, groundMask))
+        enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
+        if ((!Physics2D.OverlapCircle(groundChecker.position, 0.1f, groundMask) && !isJumping) ||
+        Physics2D.OverlapCircle(wallChecker.position, 0.1f, groundMask))
         {
             Reflect();
+        }
+
+    }
+    private void JumpUP()
+    {
+        if (!Physics2D.OverlapCircle(jumpUpChecker.position, 0.1f, groundMask))
+        {
+            Jump();
         }
     }
     private void Reflect()
     {
         transform.localScale *= new Vector2(-1, 1);
-        WalkSpeed *= -1;
+        walkSpeed *= -1;
         if (direction == MovementDirection.Left)
         {
             direction = MovementDirection.Right;
@@ -56,15 +71,33 @@ public class EnemyMovement : MonoBehaviour
         {
             FacePlayer(playerCollider.transform.position);
         }
-        enemyRigidbody.velocity = new Vector2(WalkSpeed, enemyRigidbody.velocity.y);
+        if (Physics2D.OverlapCircle(wallChecker.position, 0.1f, groundMask))
+        {
+            JumpUP();
+        }
+        enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
     }
-    public void waitingToPlayer()
+    private void Jump()
     {
+        enemyRigidbody.velocity = new Vector2(enemyRigidbody.velocity.x, 1 * jumpForce);
+        isJumping = true;
+        StartCoroutine(WaitingJump());
 
     }
     private void Start()
     {
         enemyRigidbody = GetComponentInParent<Rigidbody2D>();
+    }
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawWireSphere(groundChecker.position, 0.1f);
+        Gizmos.DrawWireSphere(wallChecker.position, 0.1f);
+        Gizmos.DrawWireSphere(jumpUpChecker.position, 0.1f);
+    }
+    private IEnumerator WaitingJump()
+    {
+        yield return new WaitForSeconds(1);
+        isJumping = false;
     }
     public enum MovementDirection
     {
