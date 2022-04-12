@@ -47,3 +47,12 @@ TagManager:
   - name: Terrain
     uniqueID: 2126591767
     locked: 0
+  - name: Objects
+    uniqueID: 2786655943
+    locked: 0
+  - name: Enemy
+    uniqueID: 1008676421
+    locked: 0
+  - name: Hero
+    uniqueID: 1548094911
+    locked: 0
