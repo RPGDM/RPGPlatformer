@@ -1,23 +1,39 @@
 version: 2.1
 executors:
-  my-custom-executor:
+  unity:
     docker:
-      - image: cimg/base:stable
-        auth:
-          # ensure you have first added these secrets
-          # visit app.circleci.com/settings/project/github/RPGDM/RPGPlatformer/environment-variables
-          username: $DOCKER_HUB_USER
-          password: $DOCKER_HUB_PASSWORD
-jobs:
-  build:
+      - image: gableroux/unity3d:2020.1.0a21
 
-    executor: my-custom-executor
+commands:
+  activate:
     steps:
-      - checkout
-      - run: |
-          # echo Hello, World!
+      - run:
+          name: "Activate Unity Licence File"
+          command: |
+            mkdir -p /root/.cache/unity3d
+            mkdir -p /root/.local/share/unity3d/Unity/
+
+            if [[ -z $"ACTIVATION_ULF_ENC" ]]; then
+              echo "ACTIVATION_ULF_ENC is missing. You must provide the base64 encoded  ULF licence file contents."
+              exit 1
+            fi
+
+            echo
+            echo "Decoding and writing licence file to /root/.local/share/unity3d/Unity/Unity_lic.ulf"
+            echo
+
+            cat $ACTIVATION_ULF_ENC | base64 --decode > /root/.local/share/unity3d/Unity/Unity_lic.ulf
+ 
+jobs:
+  UnityTests:
+    executor: unity
+    steps:
+      - run:
+          name: Demo Unity
+          command: echo "First commit"
+      - activate
 
 workflows:
-  my-custom-workflow:
+  Unity_Test_Deploy:
     jobs:
-      - build
+      - UnityTests
