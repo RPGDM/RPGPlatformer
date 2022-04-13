@@ -1,131 +1,70 @@
 version: 2.1
-jobs:
-  build:
+executors:
+  unity:
     docker:
-      - image: ubuntu:14.04
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-
-      - image: mongo:2.6.8
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-        command: [mongod, --smallfiles]
-
-      - image: postgres:9.4.1
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-        # some containers require setting environment variables
-        environment:
-          POSTGRES_USER: root
-
-      - image: redis@sha256:54057dd7e125ca41afe526a877e8bd35ec2cdd33b9217e022ed37bdcf7d09673
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-
-      - image: rabbitmq:3.5.4
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-
-    environment:
-      TEST_REPORTS: /tmp/test-reports
-
-    working_directory: ~/my-project
-
+      - image: gableroux/unity3d:2020.1.0a21
+commands:
+  activate:
     steps:
-      - checkout
-
       - run:
-          command: echo 127.0.0.1 devhost | sudo tee -a /etc/hosts
-
-      # Create Postgres users and database
-      # Note the YAML heredoc '|' for nicer formatting
-      - run: |
-          sudo -u root createuser -h localhost --superuser ubuntu &&
-          sudo createdb -h localhost test_db
-
-      - restore_cache:
-          keys:
-            - v1-my-project-{{ checksum "project.clj" }}
-            - v1-my-project-
-
-      - run:
-          environment:
-            SSH_TARGET: "localhost"
-            TEST_ENV: "linux"
+          name: "Activate Unity Licence File"
           command: |
-            set -xu
-            mkdir -p ${TEST_REPORTS}
-            run-tests.sh
-            cp out/tests/*.xml ${TEST_REPORTS}
+            mkdir -p /root/.cache/unity3d
+            mkdir -p /root/.local/share/unity3d/Unity/
 
-      - run: |
-          set -xu
-          mkdir -p /tmp/artifacts
-          create_jars.sh << pipeline.number >>
-          cp *.jar /tmp/artifacts
+            if [[ -z $"ACTIVATION_ULF_ENC" ]]; then
+              echo "ACTIVATION_ULF_ENC is missing. You must provide the base64 encoded  ULF licence file contents."
+              exit 1
+            fi
 
-      - save_cache:
-          key: v1-my-project-{{ checksum "project.clj" }}
-          paths:
-            - ~/.m2
+            echo
+            echo "Decoding and writing licence file to /root/.local/share/unity3d/Unity/Unity_lic.ulf"
+            echo
 
-      # Save artifacts
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: build
-
-      # Upload test results
-      - store_test_results:
-          path: /tmp/test-reports
-
-  deploy-stage:
-    docker:
-      - image: ubuntu:14.04
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-    working_directory: /tmp/my-project
+            cat $ACTIVATION_ULF_ENC | base64 --decode > /root/.local/share/unity3d/Unity/Unity_lic.ulf
+  run_tests:
     steps:
       - run:
-          name: Deploy if tests pass and branch is Staging
-          command: ansible-playbook site.yml -i staging
+          name: Testing
+          command: |
+            set -x
 
-  deploy-prod:
-    docker:
-      - image: ubuntu:14.04
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-    working_directory: /tmp/my-project
+            echo "Testing for $TEST_PLATFORM"
+
+            ${UNITY_EXECUTABLE:-xvfb-run --auto-servernum --server-args='-screen 0 640x480x24' /opt/Unity/Editor/Unity} \
+              -projectPath $(pwd) \
+              -runTests \
+              -testPlatform $TEST_PLATFORM \
+              -testResults $(pwd)/$TEST_PLATFORM-results.xml \
+              -logFile /dev/stdout \
+              -batchmode
+
+            UNITY_EXIT_CODE=$?
+
+            if [ $UNITY_EXIT_CODE -eq 0 ]; then
+              echo "Run succeeded, no failures occurred";
+            elif [ $UNITY_EXIT_CODE -eq 2 ]; then
+              echo "Run succeeded, some tests failed";
+            elif [ $UNITY_EXIT_CODE -eq 3 ]; then
+              echo "Run failure (other failure)";
+            else
+              echo "Unexpected exit code $UNITY_EXIT_CODE";
+            fi
+
+            cat $(pwd)/$TEST_PLATFORM-results.xml | grep test-run | grep Passed
+            exit $UNITY_TEST_EXIT_CODE
+            
+jobs:
+  UnityTests:
+    executor: unity
     steps:
       - run:
-          name: Deploy if tests pass and branch is Main
-          command: ansible-playbook site.yml -i production
+          name: Demo Unity
+          command: echo "First commit"
+      - activate
+      - run_tests
 
 workflows:
-  version: 2
-  build-deploy:
+  Unity_Test_Deploy:
     jobs:
-      - build:
-          filters:
-            branches:
-              ignore:
-                - develop
-                - /feature-.*/
-      - deploy-stage:
-          requires:
-            - build
-          filters:
-            branches:
-              only: staging
-      - deploy-prod:
-          requires:
-            - build
-          filters:
-            branches:
-              only: main
+      - UnityTests
