@@ -2,7 +2,7 @@ version: 2.1
 executors:
   unity:
     docker:
-      - image: gableroux/unity3d:2020.1.0a21
+      - image: gableroux/unity3d:2021.1.15f1
 
 commands:
   activate:
