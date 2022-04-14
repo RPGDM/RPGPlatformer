@@ -34,11 +34,12 @@ jobs:
       - activate
   build:
     docker:
-      - image: 'circleci/node:10'
+      - image: 'cimg/base:stable'
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
     steps:
       - run: echo "hello"
-
-token_name: $CIRCLE_TOKEN
 
 orbs: 
   jira: circleci/jira@1.3.1
