@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs: 
+  jira: circleci/jira@1.3.1
+
 executors:
   unity:
     docker:
@@ -33,7 +36,7 @@ jobs:
           name: Demo Unity
           command: echo "First commit"
       - activate
-  build:
+  Build:
     docker:
       - image: 'cimg/base:stable'
         auth:
@@ -42,15 +45,14 @@ jobs:
     steps:
       - run: echo "hello"
 
-orbs: 
-  jira: circleci/jira@1.3.1
+
 
 workflows:
   Unity_Test:
     jobs:
       - UnityTests
-  build:
+  Build:
     jobs:
-      - build:
+      - Build:
           post-steps:
             - jira/notify
