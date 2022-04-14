@@ -4,6 +4,9 @@ executors:
     docker:
       - image: gableroux/unity3d:2020.1.0a21
 
+orbs: 
+  jira: circleci/jira@1.3.1
+  
 commands:
   activate:
     steps:
