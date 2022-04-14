@@ -21,26 +21,23 @@ public class Soul : MonoBehaviour
             switch (Type)
             {
                 case Soul.soulType.small:
-                    Debug.Log("Opa chirik");
                     collision.GetComponent<SoulsController>().Replenishment(10);
-                    Destroy(gameObject);
                     break;
                 case Soul.soulType.medium:
                     collision.GetComponent<SoulsController>().Replenishment(50);
-                    Destroy(gameObject);
                     break;
                 case Soul.soulType.large:
                     collision.GetComponent<SoulsController>().Replenishment(200);
-                    Destroy(gameObject);
                     break;
             }
+            Destroy(gameObject);
 
         }
     }
     private void Start()
     {
         soulRigidbody = GetComponent<Rigidbody2D>();
-        soulRigidbody.AddForce(new Vector2(Random.Range(-100,100), Random.Range(100, 200)));
+        soulRigidbody.AddForce(new Vector2(Random.Range(-100, 100), Random.Range(100, 200)));
         StartCoroutine(pickUpSoul());
     }
     private IEnumerator pickUpSoul()
