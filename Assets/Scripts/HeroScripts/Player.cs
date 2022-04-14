@@ -9,11 +9,24 @@ public class Player : MonoBehaviour
     private Attributes attributes = new Attributes();
     [SerializeField] MovingScript _movingController;
     [SerializeField] CombatScript _combatController;
+    [SerializeField] private SoulsController soulsController;
+    private int balance = 0;
     public Attributes PlayersAttributes
     {
         get
         {
             return attributes;
+        }
+    }
+    public int Balance
+    {
+        get
+        {
+            return balance;
+        }
+        set
+        {
+            balance = value;
         }
     }
     private void Update()

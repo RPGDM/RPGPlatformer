@@ -12,12 +12,14 @@ public class Enemy : MonoBehaviour
     [SerializeField] private EnemyMovement movementController;
     [SerializeField] private float agreRange = 3.3f;
     [SerializeField] private float activeAgreRange = 5f;
+    [SerializeField] private GameObject dropSoul;
     private Behavior startEnemyBehavior;
     private Vector2 direction;
     private int currentHealth;
     private bool damageable = true;
     private float invulnerabilityTime = .2f;//u cant spam attack
     private bool hit = false;
+    private int enemyValue;
     public Behavior EnemyBehavior()
     {
         return enemyBehavior;
@@ -37,21 +39,34 @@ public class Enemy : MonoBehaviour
             hit = true;
             currentHealth -= damage;
             direction = Vector2.left;
-            _rigidBody.AddForce(direction * 300);
+            _rigidBody.AddForce(direction * 500);
+            Debug.Log(damage);
+            Debug.Log(currentHealth + "HP");
             if (currentHealth <= 0)
             {
                 currentHealth = 0;
                 die();
+                return;
             }
+            StartCoroutine(TurnOffHit());
         }
         else
         {
-            hit = false;
+            Debug.Log("Pishow nahoy");
+            //StartCoroutine(TurnOffHit());
         }
     }
     private void die()
     {
+        SpawnSoul(Random.Range(0, 3));
         gameObject.SetActive(false);
+    }
+    private void SpawnSoul(int amountOfSouls)
+    {
+        for (int i = 0; i <= amountOfSouls; i++)
+        {
+            Instantiate(dropSoul, transform.position, transform.rotation);
+        }
     }
     private IEnumerator TurnOffHit()
     {
