@@ -160,14 +160,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4133a23b2c146624fb1aa55338940b7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 20
   _animator: {fileID: 0}
   _rigidBody: {fileID: 2174421862542199776}
   enemyBehavior: 2
   agreCircle: {fileID: 2174421863084182306}
   movementController: {fileID: 2174421862542199788}
   agreRange: 3.3
-  activeAgreRange: 5
+  activeAgreRange: 6.63
+  dropSoul: {fileID: 3572598158642838718, guid: 6c1c5172d71431b45acb623053daa6c9, type: 3}
 --- !u!114 &2174421862542199788
 MonoBehaviour:
   m_ObjectHideFlags: 0

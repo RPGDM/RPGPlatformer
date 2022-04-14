@@ -46,7 +46,6 @@ public class CombatScript : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log(attacks.ToString());
         if (collision.GetComponent<Enemy>() && attacks)
         {
             collision.GetComponent<Enemy>().TakeDamage(dealingDamage());

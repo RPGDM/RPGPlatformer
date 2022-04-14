@@ -49,7 +49,6 @@ public class MovingScript : MonoBehaviour
     {
         if (CheckGround() && Input.GetKeyDown(KeyCode.W))
         {
-            Debug.Log("1");
             isJumping = true;
             jumpTimeCounter = JumpTime;
             _rigidBody.velocity = new Vector2(_rigidBody.velocity.x, 1 * JumpForce);
@@ -73,7 +72,6 @@ public class MovingScript : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.W) && !CheckGround() && secondJump)
         {
-            Debug.Log("2");
             isJumping = true;
             jumpTimeCounter = JumpTime;
             _rigidBody.velocity = new Vector2(_rigidBody.velocity.x, 1 * JumpForce);
