@@ -13,11 +13,13 @@ public class EnemyMovement : MonoBehaviour
     private Rigidbody2D enemyRigidbody;
     private Vector2 movingVector;
     private MovementDirection direction = MovementDirection.Left;
+    private float attackSpeed = -3;
     private float walkSpeed = -1;
     private float jumpForce = 5;
     private bool patrolling;
     private bool isJumping = false;
     private bool canJumpUp;
+    private bool moving = true;
     public void Patrol()
     {
         enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
@@ -35,10 +37,18 @@ public class EnemyMovement : MonoBehaviour
             Jump();
         }
     }
+    public MovementDirection Direction
+    {
+        get
+        {
+            return direction;
+        }
+    }
     private void Reflect()
     {
         transform.localScale *= new Vector2(-1, 1);
         walkSpeed *= -1;
+        attackSpeed *= -1;
         if (direction == MovementDirection.Left)
         {
             direction = MovementDirection.Right;
@@ -54,6 +64,10 @@ public class EnemyMovement : MonoBehaviour
         (playerPosition.x > GetComponentInParent<Enemy>().GetPosition().x && direction == MovementDirection.Left))
         {
             Reflect();
+        }
+        else
+        {
+            return;
         }
     }
     public bool PlayerSearch(float agrRange)
@@ -75,18 +89,32 @@ public class EnemyMovement : MonoBehaviour
         {
             JumpUP();
         }
-        enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
+        if (playerCollider != null)
+        {
+            if (enemyCollider.Distance(playerCollider).distance > 2)
+            {
+                enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
+            }
+        }
+    }
+    public void Attack()
+    {
+        enemyRigidbody.velocity = new Vector2(attackSpeed, enemyRigidbody.velocity.y);
+    }
+    private void StopMoving()
+    {
+        moving = false;
     }
     private void Jump()
     {
         enemyRigidbody.velocity = new Vector2(enemyRigidbody.velocity.x, 1 * jumpForce);
         isJumping = true;
         StartCoroutine(WaitingJump());
-
     }
     private void Start()
     {
         enemyRigidbody = GetComponentInParent<Rigidbody2D>();
+        enemyCollider = GetComponentInParent<BoxCollider2D>();
     }
     private void OnDrawGizmosSelected()
     {
@@ -98,6 +126,11 @@ public class EnemyMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         isJumping = false;
+    }
+    private IEnumerator startRunning()
+    {
+        yield return new WaitForSeconds(1);
+        moving = true;
     }
     public enum MovementDirection
     {

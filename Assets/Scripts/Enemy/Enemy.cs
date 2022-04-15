@@ -10,15 +10,17 @@ public class Enemy : MonoBehaviour
     [SerializeField] private Behavior enemyBehavior;
     [SerializeField] private Transform agreCircle;
     [SerializeField] private EnemyMovement movementController;
-    [SerializeField] private float agreRange = 3.3f;
+    [SerializeField] private float agreRange = 4.3f;
     [SerializeField] private float activeAgreRange = 5f;
     [SerializeField] private GameObject dropSoul;
+    [SerializeField] private int damage = 20;
     private Behavior startEnemyBehavior;
     private Vector2 direction;
     private int currentHealth;
     private bool damageable = true;
     private float invulnerabilityTime = .2f;//u cant spam attack
     private bool hit = false;
+    private bool hitPlayer;
     private int enemyValue;
     public Behavior EnemyBehavior()
     {
@@ -38,8 +40,17 @@ public class Enemy : MonoBehaviour
         {
             hit = true;
             currentHealth -= damage;
-            direction = Vector2.left;
-            _rigidBody.AddForce(direction * 500);
+            Debug.Log(movementController.Direction);
+            if (movementController.Direction == EnemyMovement.MovementDirection.Left)
+            {
+                direction = new Vector2(10, 3);
+            }
+            else
+            {
+                direction = new Vector2(-10, 3);
+            }
+            _rigidBody.velocity = new Vector2(0, 0);
+            _rigidBody.velocity = direction;
             Debug.Log(damage);
             Debug.Log(currentHealth + "HP");
             if (currentHealth <= 0)
@@ -73,6 +84,20 @@ public class Enemy : MonoBehaviour
         yield return new WaitForSeconds(invulnerabilityTime);
         hit = false;
     }
+    private IEnumerator HitPlayerAgain()
+    {
+        yield return new WaitForSeconds(1f);
+        hitPlayer = false;
+    }
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.tag == "Player")
+        {
+            collision.collider.GetComponent<CombatScript>().TakeDamage(damage, this);
+            hitPlayer = true;
+            StartCoroutine(HitPlayerAgain());
+        }
+    }
     private void EnemyAction()
     {
         switch (enemyBehavior)
@@ -85,10 +110,18 @@ public class Enemy : MonoBehaviour
                 }
                 break;
             case Behavior.agressive:
-                movementController.AgressivePursuit(activeAgreRange);
+                if (hitPlayer)
+                {
+                    movementController.AgressivePursuit(activeAgreRange);
+                }
+                else
+                {
+                    movementController.Attack();
+                }
                 if (!movementController.PlayerSearch(activeAgreRange))
                 {
                     enemyBehavior = startEnemyBehavior;
+                    hitPlayer = true;
                 }
                 break;
             case Behavior.waitingToPlayer:

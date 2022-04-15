@@ -19,6 +19,7 @@ public class MovingScript : MonoBehaviour
     private float JumpTime = 0.35f;
     private bool isJumping = false;
     private bool secondJump = false;
+    private bool isTakingDamage = false;
     public bool OnGround
     {
         get
@@ -33,14 +34,35 @@ public class MovingScript : MonoBehaviour
             return directionState;
         }
     }
+    public bool IsTakingDamage
+    {
+        get
+        {
+            return isTakingDamage;
+        }
+        set
+        {
+            isTakingDamage = value;
+        }
+    }
     public void Moving()
     {
-        MovingHorizontal();
         Jump();
+        if (!isTakingDamage)
+        {
+            MovingHorizontal();
+        }
     }
     private void MovingHorizontal()
     {
-        movingVector.x = Input.GetAxis("Horizontal");
+        if (Input.GetAxis("Horizontal") != 0 && !isTakingDamage)
+        {
+            movingVector.x = Input.GetAxis("Horizontal");
+        }
+        else
+        {
+            movingVector.x = 0;
+        }
         _animationController.SetFloat("walking", Mathf.Abs(movingVector.x));
         _rigidBody.velocity = new Vector2(movingVector.x * WalkSpeed, _rigidBody.velocity.y);
         Reflect();
@@ -104,6 +126,9 @@ public class MovingScript : MonoBehaviour
                 directionState = DirectionState.Left;
             }
         }
+    }
+    private void FixedUpdate()
+    {
     }
     private bool CheckGround()
     {

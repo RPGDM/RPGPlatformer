@@ -169,6 +169,7 @@ MonoBehaviour:
   agreRange: 3.3
   activeAgreRange: 6.63
   dropSoul: {fileID: 3572598158642838718, guid: 6c1c5172d71431b45acb623053daa6c9, type: 3}
+  damage: 20
 --- !u!114 &2174421862542199788
 MonoBehaviour:
   m_ObjectHideFlags: 0
