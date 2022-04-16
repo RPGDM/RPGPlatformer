@@ -5,8 +5,8 @@ using UnityEngine.Events;
 
 public class CombatScript : MonoBehaviour
 {
-    [SerializeField] Animator _animationController;
-    [SerializeField] Weapon _weapon;
+    [SerializeField] private Animator _animationController;
+    [SerializeField] private Weapon _weapon;
     [SerializeField] private float horizontalKnockback;
     [SerializeField] private float verticalKnockback;
     [SerializeField] private float cancelMovementTime;
@@ -16,12 +16,9 @@ public class CombatScript : MonoBehaviour
     private MovingScript playerMovement;
     private Rigidbody2D rigidBody;
     private Enemy AttackingEnemy;
-    private bool attacks = false;
+    private bool attacks;
     private float lastInputTime;
-    private bool damageable = true;
-    private bool isDead = false;
-
-
+    private bool isDead;
     public void attack()
     {
         if (Input.GetMouseButtonDown(0) && !attacks)
@@ -69,7 +66,6 @@ public class CombatScript : MonoBehaviour
                 Invoke("EnableMovement", cancelMovementTime);
                 Invoke("CancelHit", invulnerabilityTime);
             }
-
         }
     }
     private void CancelHit()
@@ -89,18 +85,15 @@ public class CombatScript : MonoBehaviour
     }
     public void TakeDamage(int damage, Enemy enemy)
     {
-        if (damageable)
+        playerMovement.IsTakingDamage = true;
+        AttackingEnemy = enemy;
+        attacks = true;
+        GetComponent<Player>().CurrentHealth -= damage;
+        if (GetComponent<Player>().CurrentHealth <= 0)
         {
-            playerMovement.IsTakingDamage = true;
-            AttackingEnemy = enemy;
-            attacks = true;
-            GetComponent<Player>().CurrentHealth -= damage;
-            if (GetComponent<Player>().CurrentHealth <= 0)
-            {
-                isDead = true;
-            }
-            KnockBack();
+            isDead = true;
         }
+        KnockBack();
     }
     private IEnumerator TurnOffHit()
     {
@@ -119,8 +112,5 @@ public class CombatScript : MonoBehaviour
         _weaponCollider = GetComponentInParent<CapsuleCollider2D>();
         rigidBody = GetComponentInParent<Rigidbody2D>();
         playerMovement = GetComponentInParent<MovingScript>();
-    }
-    private void FixedUpdate()
-    {
     }
 }

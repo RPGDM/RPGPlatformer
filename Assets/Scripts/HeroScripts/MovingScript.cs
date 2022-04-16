@@ -127,9 +127,6 @@ public class MovingScript : MonoBehaviour
             }
         }
     }
-    private void FixedUpdate()
-    {
-    }
     private bool CheckGround()
     {
         _animationController.SetBool("onGround", onGround);

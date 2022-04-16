@@ -25,7 +25,16 @@ public class Enemy : MonoBehaviour
     {
         get
         {
+            try
+            {
             return player[0];
+            }
+            catch(System.IndexOutOfRangeException ex)
+            {
+                Debug.Log("Player not found" + ex);
+                throw;
+            }
+
         }
     }
     public Behavior EnemyBehavior
