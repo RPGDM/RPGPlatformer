@@ -47,9 +47,9 @@ public class MovingScript : MonoBehaviour
     }
     public void Moving()
     {
-        Jump();
         if (!isTakingDamage)
         {
+            Jump();
             MovingHorizontal();
         }
     }

@@ -14,12 +14,30 @@ public class EnemyMovement : MonoBehaviour
     private Vector2 movingVector;
     private MovementDirection direction = MovementDirection.Left;
     private float attackSpeed = -3;
-    private float walkSpeed = -1;
+    private float walkSpeed = -1.5f;
     private float jumpForce = 5;
-    private bool patrolling;
-    private bool isJumping = false;
-    private bool canJumpUp;
-    private bool moving = true;
+    private bool isJumping;
+    private bool goalAchieved;
+    private bool isRunning = true;
+    private bool isTakingDamage;
+    public bool IsTakingDamage
+    {
+        get
+        {
+            return isTakingDamage;
+        }
+        set
+        {
+            isTakingDamage = value;
+        }
+    }
+    public bool GoalAchieved
+    {
+        set
+        {
+            goalAchieved = value;
+        }
+    }
     public void Patrol()
     {
         enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
@@ -57,6 +75,10 @@ public class EnemyMovement : MonoBehaviour
         {
             direction = MovementDirection.Left;
         }
+        if (isRunning)
+        {
+            goalAchieved = true;
+        }
     }
     private void FacePlayer(Vector2 playerPosition)
     {
@@ -78,7 +100,7 @@ public class EnemyMovement : MonoBehaviour
         }
         return false;
     }
-    public void AgressivePursuit(float argRange)
+    public bool AgressivePursuit(float argRange)
     {
         Collider2D playerCollider = Physics2D.OverlapCircle(GetComponentInParent<Enemy>().GetPosition(), argRange, playerMask);
         if (playerCollider != null)
@@ -91,19 +113,55 @@ public class EnemyMovement : MonoBehaviour
         }
         if (playerCollider != null)
         {
-            if (enemyCollider.Distance(playerCollider).distance > 2)
+            if (enemyCollider.Distance(playerCollider).distance > 2.5)
             {
                 enemyRigidbody.velocity = new Vector2(walkSpeed, enemyRigidbody.velocity.y);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(1);
+        goalAchieved = false;
+        if (!goalAchieved)
+        {
+            running();
+        }
+    }
+    private IEnumerator Runable()
+    {
+        yield return new WaitForSeconds(2);
+        isTakingDamage = false;
+    }
+    private void running()
+    {
+        if (isRunning && !isTakingDamage)
+        {
+            enemyRigidbody.velocity = new Vector2(attackSpeed, enemyRigidbody.velocity.y);
+            if (enemyRigidbody.transform.position.x - GetComponent<Enemy>().GetPlayer.transform.position.x < -3 && direction == MovementDirection.Left ||
+            enemyRigidbody.transform.position.x - GetComponent<Enemy>().GetPlayer.transform.position.x > 3 && direction == MovementDirection.Right)
+            {
+                Reflect();
+            }
+        }
+        else
+        {
+            if (isTakingDamage)
+            {
+                StartCoroutine(Runable());
             }
         }
     }
-    public void Attack()
+    public void StopMoving()
     {
-        enemyRigidbody.velocity = new Vector2(attackSpeed, enemyRigidbody.velocity.y);
-    }
-    private void StopMoving()
-    {
-        moving = false;
+        enemyRigidbody.velocity = Vector2.zero;
+        isRunning = false;
     }
     private void Jump()
     {
@@ -126,11 +184,6 @@ public class EnemyMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         isJumping = false;
-    }
-    private IEnumerator startRunning()
-    {
-        yield return new WaitForSeconds(1);
-        moving = true;
     }
     public enum MovementDirection
     {

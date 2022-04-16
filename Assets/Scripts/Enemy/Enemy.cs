@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private int maxHealth;
-    [SerializeField] private Animator _animator;
+    [SerializeField] private int maxHealth = 20;
     [SerializeField] private Rigidbody2D _rigidBody;
     [SerializeField] private Behavior enemyBehavior;
     [SerializeField] private Transform agreCircle;
@@ -14,17 +13,31 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float activeAgreRange = 5f;
     [SerializeField] private GameObject dropSoul;
     [SerializeField] private int damage = 20;
+    [SerializeField] private float verticalKnockback;
+    [SerializeField] private float horizontalKnockback;
+    [SerializeField] private float cancelMovementTime;
+    private GameObject[] player;
     private Behavior startEnemyBehavior;
-    private Vector2 direction;
     private int currentHealth;
-    private bool damageable = true;
-    private float invulnerabilityTime = .2f;//u cant spam attack
-    private bool hit = false;
-    private bool hitPlayer;
-    private int enemyValue;
-    public Behavior EnemyBehavior()
+    private bool isTakingDamage;
+    private bool isDead;
+    public GameObject GetPlayer
     {
-        return enemyBehavior;
+        get
+        {
+            return player[0];
+        }
+    }
+    public Behavior EnemyBehavior
+    {
+        get
+        {
+            return enemyBehavior;
+        }
+        set
+        {
+            enemyBehavior = value;
+        }
     }
     public Vector2 GetPosition()
     {
@@ -36,40 +49,48 @@ public class Enemy : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        if (damageable && !hit && currentHealth > 0)
+        if (!isTakingDamage && currentHealth > 0)
         {
-            hit = true;
+            enemyBehavior = Behavior.takingDamage;
+            isTakingDamage = true;
+            movementController.IsTakingDamage = true;
             currentHealth -= damage;
-            Debug.Log(movementController.Direction);
-            if (movementController.Direction == EnemyMovement.MovementDirection.Left)
-            {
-                direction = new Vector2(10, 3);
-            }
-            else
-            {
-                direction = new Vector2(-10, 3);
-            }
-            _rigidBody.velocity = new Vector2(0, 0);
-            _rigidBody.velocity = direction;
-            Debug.Log(damage);
-            Debug.Log(currentHealth + "HP");
+            KnockBack();
             if (currentHealth <= 0)
             {
                 currentHealth = 0;
                 die();
                 return;
             }
-            StartCoroutine(TurnOffHit());
         }
-        else
+    }
+    private void KnockBack()
+    {
+        _rigidBody.AddForce(Vector2.up * verticalKnockback);
+        if (player[0] != null)
         {
-            Debug.Log("Pishow nahoy");
-            //StartCoroutine(TurnOffHit());
+            if (transform.position.x < player[0].transform.position.x)
+            {
+                _rigidBody.AddForce(Vector2.left * horizontalKnockback);
+            }
+            else
+            {
+                _rigidBody.AddForce(Vector2.right * horizontalKnockback);
+            }
+            if (!isDead)
+            {
+                Invoke("EnableMovement", cancelMovementTime);
+            }
         }
+    }
+    private void EnableMovement()
+    {
+        isTakingDamage = false;
     }
     private void die()
     {
         SpawnSoul(Random.Range(0, 3));
+        isDead = true;
         gameObject.SetActive(false);
     }
     private void SpawnSoul(int amountOfSouls)
@@ -79,23 +100,12 @@ public class Enemy : MonoBehaviour
             Instantiate(dropSoul, transform.position, transform.rotation);
         }
     }
-    private IEnumerator TurnOffHit()
-    {
-        yield return new WaitForSeconds(invulnerabilityTime);
-        hit = false;
-    }
-    private IEnumerator HitPlayerAgain()
-    {
-        yield return new WaitForSeconds(1f);
-        hitPlayer = false;
-    }
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.tag == "Player")
         {
             collision.collider.GetComponent<CombatScript>().TakeDamage(damage, this);
-            hitPlayer = true;
-            StartCoroutine(HitPlayerAgain());
+            movementController.GoalAchieved = true;
         }
     }
     private void EnemyAction()
@@ -110,22 +120,29 @@ public class Enemy : MonoBehaviour
                 }
                 break;
             case Behavior.agressive:
-                if (hitPlayer)
+                if (movementController.AgressivePursuit(activeAgreRange) && !isTakingDamage)
                 {
-                    movementController.AgressivePursuit(activeAgreRange);
+                    enemyBehavior = Behavior.attack;
                 }
                 else
                 {
-                    movementController.Attack();
-                }
-                if (!movementController.PlayerSearch(activeAgreRange))
-                {
-                    enemyBehavior = startEnemyBehavior;
-                    hitPlayer = true;
+                    if (!movementController.PlayerSearch(activeAgreRange))
+                    {
+                        enemyBehavior = startEnemyBehavior;
+                    }
                 }
                 break;
             case Behavior.waitingToPlayer:
                 if (movementController.PlayerSearch(agreRange))
+                {
+                    enemyBehavior = Behavior.agressive;
+                }
+                break;
+            case Behavior.attack:
+                StartCoroutine(movementController.Attack());
+                break;
+                case Behavior.takingDamage:
+                if(!isTakingDamage)
                 {
                     enemyBehavior = Behavior.agressive;
                 }
@@ -150,6 +167,7 @@ public class Enemy : MonoBehaviour
     {
         currentHealth = maxHealth;
         startEnemyBehavior = enemyBehavior;
+        player = GameObject.FindGameObjectsWithTag("Player");
     }
     private void Update()
     {
@@ -159,6 +177,8 @@ public class Enemy : MonoBehaviour
     {
         waitingToPlayer,
         agressive,
-        patrol
+        patrol,
+        attack,
+        takingDamage
     }
 }

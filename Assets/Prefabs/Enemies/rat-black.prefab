@@ -161,7 +161,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 20
-  _animator: {fileID: 0}
   _rigidBody: {fileID: 2174421862542199776}
   enemyBehavior: 2
   agreCircle: {fileID: 2174421863084182306}
@@ -170,6 +169,9 @@ MonoBehaviour:
   activeAgreRange: 6.63
   dropSoul: {fileID: 3572598158642838718, guid: 6c1c5172d71431b45acb623053daa6c9, type: 3}
   damage: 20
+  verticalKnockback: 230
+  horizontalKnockback: 350
+  cancelMovementTime: 2.15
 --- !u!114 &2174421862542199788
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -203,7 +205,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 10
+  m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
