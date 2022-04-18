@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private int health;
+    private int maxHealth = 100;
+    private int currentHealth;
     private int currentLvl;
     private Attributes attributes = new Attributes();
     [SerializeField] MovingScript _movingController;
@@ -29,6 +30,17 @@ public class Player : MonoBehaviour
             balance = value;
         }
     }
+    public int CurrentHealth
+    {
+        get
+        {
+            return currentHealth;
+        }
+        set
+        {
+            currentHealth = value;
+        }
+    }
     private void Update()
     {
         _movingController.Moving();
@@ -36,6 +48,7 @@ public class Player : MonoBehaviour
     }
     private void Start()
     {
+        currentHealth = maxHealth;
         //attributes.Strength = 10;
         //attributes.Agility = 10;
 
